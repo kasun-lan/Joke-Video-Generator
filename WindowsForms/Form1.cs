@@ -1,5 +1,5 @@
 ﻿using Google.Cloud.TextToSpeech.V1;
-using NAudio.Wave;
+//using NAudio.Wave;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -78,7 +78,7 @@ namespace WindowsForms
                 throw new Exception("SynthesizeText");
             }
 
-            audio file එකට අදාළ sample db data ටික ගන්නවා
+            //audio file එකට අදාළ sample db data ටික ගන්නවා
             var dbdata = dbData("audiofiles/audio.mp3");
 
             GenerateTextFileForFfmpeg(dbdata, 20, "textfiles/input.txt");
@@ -272,16 +272,16 @@ namespace WindowsForms
 
         }
 
-        private static void ConvertMp3ToWav(string _inPath_, string _outPath_)
-        {
-            using (Mp3FileReader mp3 = new Mp3FileReader(_inPath_))
-            {
-                using (WaveStream pcm = WaveFormatConversionStream.CreatePcmStream(mp3))
-                {
-                    WaveFileWriter.CreateWaveFile(_outPath_, pcm);
-                }
-            }
-        }
+        //private static void ConvertMp3ToWav(string _inPath_, string _outPath_)
+        //{
+        //    using (Mp3FileReader mp3 = new Mp3FileReader(_inPath_))
+        //    {
+        //        using (WaveStream pcm = WaveFormatConversionStream.CreatePcmStream(mp3))
+        //        {
+        //            WaveFileWriter.CreateWaveFile(_outPath_, pcm);
+        //        }
+        //    }
+        //}
 
 
         string SpeechToText(string waveFilePath)
@@ -464,3 +464,7 @@ namespace WindowsForms
         }
     }
 }
+
+
+
+//
