@@ -14,9 +14,30 @@ namespace Joke_Video_Generator
 {
     class Program
     {
-        static void Main(string[] args)
-        {
 
+        static void test1()
+        {
+            //List<Tuple<double, double, string, int, int>> data = new List<Tuple<double, double, string, int, int>>();
+
+            //data.Add(Tuple.Create(1.5, 20.0, "first word", 10, 20));
+            //data.Add(Tuple.Create(2.5, 20.0, "seound word", 20, 20));
+            //data.Add(Tuple.Create(3.5, 20.0, "thrid word", 30, 20));
+            //data.Add(Tuple.Create(4.5, 20.0, "fourth word", 40, 20));
+            //data.Add(Tuple.Create(5.5, 20.0, "fifth word", 50, 20));
+            //data.Add(Tuple.Create(6.5, 20.0, "sixth word", 60, 20));
+
+
+            //string cmd = generateTextAnimationCommand("video.mp4", "video1.mp4", data);
+            //ExecuteFFMpeg(cmd);
+
+
+            //string command = $"-i video.mp4 -filter_complex " +
+            //    $"\"drawtext=text='Summer Video1':fontfile=Arial.ttf:x=0:y=0:enable='between(t,2,20)',fade=t=in:start_time=2.0:d=0.0:alpha=1,fade=t=out:start_time=20.0:d=0.0:alpha=1 , " +
+            //    $" drawtext=text='Summer Video2':fontfile=Arial.ttf:x=0:y=20:enable='between(t,10,20)',fade=t=in:start_time=10.0:d=0.0:alpha=1,fade=t=out:start_time=20.0:d=0.0:alpha=1 , " +
+            //    $" drawtext=text='Summer Video3':fontfile=Arial.ttf:x=0:y=40:enable='between(t,16,20)',fade=t=in:start_time=16.0:d=0.0:alpha=1,fade=t=out:start_time=20.0:d=0.0:alpha=1\" " +
+            //    $" -c:a copy video1.mp4";
+
+            //ExecuteFFMpeg(command);
 
 
             using (Context context = new Context())
@@ -24,7 +45,7 @@ namespace Joke_Video_Generator
                 var text = context.Jokes.Where(j => j.id == "32w6d2").FirstOrDefault().body;
                 var c = GetTextAnimationData(text, 15, 20);
 
-                ApplyTextAnimationOnVideo(c, 120, 1, "");
+                //    ApplyTextAnimationOnVideo(c, 120, 1, "");
 
 
                 DataTable dataTable = new DataTable();
@@ -68,8 +89,8 @@ namespace Joke_Video_Generator
 
             // string command = $"-i \"video.mp4\" -vf drawtext=\"fontfile=Arial.ttf:text=hello:x=mod(t*100\\,w):y=(x*h)/w\" \"video1.mp4\" ";
             // string command = File.ReadAllText("temp.txt");
-            string command = "-i video.mp4 -filter_complex \"drawtext=text='Summer Video':fontfile=Arial.ttf:x=0:y=0:enable='between(t,2,6)',fade=t=in:start_time=2.0:d=0.5:alpha=1,fade=t=out:start_time=5.5:d=0.5:alpha=1\" -c:a copy video1.mp4";
-            ExecuteFFMpeg(command);
+            //string command = "-i video.mp4 -filter_complex \"drawtext=text='Summer Video':fontfile=Arial.ttf:x=0:y=0:enable='between(t,2,6)',fade=t=in:start_time=2.0:d=0.5:alpha=1,fade=t=out:start_time=5.5:d=0.5:alpha=1\" -c:a copy video1.mp4";
+            //ExecuteFFMpeg(command);
 
             //[fg];[0][fg]overlay=format=(auto),format=(yuv420p)
 
@@ -85,6 +106,47 @@ namespace Joke_Video_Generator
             var xx = story.Split('\n');
 
             var sdfsdfds = 0;
+        }
+
+
+
+        static void Main(string[] args)
+        {
+
+
+
+          //  ExecuteFFMpeg("-i video1.mp4 -filter_complex \"drawtext=text='...and Mr. Holmes '\\\\\\''turned'\\\\\\'' to his assistant\\: Tell me, Watson, what do you see?':fontfile=Arial.ttf:x=0:y=0:enable='between(t,2,6)',fade=t=in:start_time=2.0:d=0.5:alpha=1,fade=t=out:start_time=5.5:d=0.5:alpha=1\" -c:a copy video2.mp4", true);
+
+
+            using (Context context = new Context())
+            {
+                var y = $"Three lunatics approach their \"Asylum\" doctor with a request for a weekend pass to the local city. \n" +
+                    $" Thats impossible says the doctor. Youre all nuts.Youll get lost and never come back. But the lunatics \n" +
+                    $"wouldnt relent until finally exasperated and the doctor says OK! If you can answer a simple question Ill sign the \n" +
+                    $" pass. He turns to the first lunatic and says Whats three times three? The lunatic starts counting on his fingers 3 7 19 38?. Is it 128? \n";
+
+
+
+
+               var xx = context.Jokes.Where(j => j.id == "32rsy8").Single().body;
+                xx = xx.Replace('"', '\'').Replace("\\", "\\\\\\\\").Replace("'", "'\\\\\\''").Replace("%", "\\\\\\%").Replace(":", "\\\\\\:");
+
+
+                //List<Tuple<section_id, line_id, word, line_index, linePosition>>
+                var textData = GetTextAnimationData(xx, 15, 50);
+
+
+
+
+
+                ApplyTextAnimationOnVideo(textData, 20, 400, 100, 12, 40, 100, "black");
+
+
+
+
+
+            }
+
 
         }
 
@@ -131,194 +193,73 @@ namespace Joke_Video_Generator
         }
 
 
-        public static bool ExecuteFFMpeg(string arguments)
+        public static int ExecuteFFMpeg(string arguments, bool usingCMD = false)
         {
             try
             {
-                Process process = Process.Start("cmd.exe", $@"/k ffmpeg.exe {arguments}");
+                if (usingCMD)
+                {
+                    Process process = new Process();
+                    process.StartInfo.UseShellExecute = true;
+                    process = Process.Start("cmd.exe", $@"/k ffmpeg.exe {arguments}");
+                    process.WaitForExit();
+                    return 123123;
+                }
+
+                Process ffmpegProcess = new Process();
+                ffmpegProcess.StartInfo.FileName = "ffmpeg.exe";
+                ffmpegProcess.StartInfo.CreateNoWindow = true;
+                ffmpegProcess.StartInfo.Arguments = arguments;
+                ffmpegProcess.Start();
+                ffmpegProcess.WaitForExit();
+                int x = 0;
+                return ffmpegProcess.ExitCode;
+
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                return -1;
             }
 
-            return true;
         }
 
-        public static void Json()
-        {
-
-            string jsonString = File.ReadAllText("reddit_jokes.json");
-
-
-
-            var records = JsonConvert.DeserializeObject<Joke>(jsonString);
-        }
-
-        public static void Json1()
+        //starttime,endtime,word,positionx,positiony
+        static string generateTextAnimationCommand(string sourceVideoPath, string destinationVideoPath, List<Tuple<double, double, string, int, int>> data, int fontSize, string fontColor)
         {
 
 
-            using (Context context = new Context())
+
+
+            string startingPart = $"-i {sourceVideoPath} -filter_complex \"";
+            string endingPart = $"\" -c:a copy {destinationVideoPath} ";
+
+            string middlePart = "";
+
+            int counter = 0;
+
+            foreach (var tuple in data)
             {
-                var list = context.Jokes.ToList();
-
-                foreach (var joke in list)
-                {
-                    joke.no_of_charachter = joke.body.Length;
-                }
-
-                context.SaveChanges();
-
+                if (counter > 40) { break; }
+                middlePart += $" drawtext=text='{tuple.Item3}':fontfile=Arial.ttf:x={tuple.Item4}:y={tuple.Item5}:fontcolor={fontColor}:shadowy=2:shadowcolor=white:fontsize={20}:enable='between(t,{tuple.Item1.ToString()},{tuple.Item2.ToString()})',fade=t=in:start_time={tuple.Item1.ToString()}:d=0.0:alpha=1,fade=t=out:start_time={tuple.Item2.ToString()}:d=0.0:alpha=1 , ";
+                counter++;
             }
+            middlePart = middlePart.Trim();
+            middlePart = middlePart.Remove(middlePart.Length - 1);
+            middlePart = middlePart.Trim();
 
+            string command = startingPart + middlePart + endingPart;
 
-
-
+            return command;
         }
 
 
-        public static List<Section> GetSectionsFromJoke(Joke joke, int canvasHeight, int canvasWidth)
-        {
-            List<string> lines = joke.body.Split('\n').ToList();
-            lines = lines.Select(l => l.Trim()).ToList();
-
-
-
-            lines.RemoveAll(l => string.IsNullOrEmpty(l));
-            List<Section> sections = new List<Section>();
-            //  List<DataTable> dataTables = new List<DataTable>();
-            var currentLineIndex = 0;
-            var currentLineUsage = 0;
-            string currentSectionString = "";
-            bool firstTime = true;
-            bool sectionEnded = false;
-
-            //  DataTable trackVar = GetDataTable(canvasWidth,canvasHeight);
-            Dictionary<string, string> keyValuePairs = new Dictionary<string, string>();
-
-            int length = lines.Count;
-            int i = 0;
-            bool dontIncrementI = false;
-
-            while (i < length)
-            {
-                dontIncrementI = false;
-
-                if (firstTime) { firstTime = false; }
-                else if (sectionEnded)
-                {
-                    currentLineIndex = 0;
-                    currentLineUsage = 0;
-                    sectionEnded = false;
-
-                }
-                else
-                {
-                    currentLineIndex++;
-                    currentLineUsage = 0;
-                }
-
-
-                List<string> words = lines[i].Split(' ').ToList();
-
-                foreach (var word in words)
-                {
-                    if (currentLineUsage + word.Length > canvasWidth) // line එකේ ඉඩ මදි
-                    {
-                        if (currentLineIndex + 1 < canvasHeight) // line තව තියනවා
-                        {
-
-                            currentLineIndex++;
-                            currentLineUsage = 0;
-                            //draw here
-                            keyValuePairs.Add(currentLineIndex + " " + currentLineUsage, word);
-
-                            currentLineUsage = word.Length + 1;
-
-                        }
-                        else // line සේරම ඉවරයි
-                        {
-                            Section section = new Section();
-                            section.Text = currentSectionString;
-                            section.keyValuePairs = keyValuePairs;
-                            keyValuePairs = new Dictionary<string, string>();
-                            sections.Add(section);
-                            sectionEnded = true;
-
-                            dontIncrementI = true;
-                            break;
-                        }
-                    }
-                    else // line එකේ ඉඩ තියනව
-                    {
-                        //draw here
-                        keyValuePairs.Add(currentLineIndex + " " + currentLineUsage, word);
-                        currentLineUsage = currentLineUsage + word.Length + 1;
-                    }
-                }
-
-                if (dontIncrementI == false)
-                {
-                    i++;
-                }
-            }
-
-
-            //foreach (var line in lines)
-            //{
-            //    if (firstTime) { firstTime = false; }
-            //    else
-            //    {
-            //        currentLineIndex++;
-            //        currentLineUsage = 0;
-            //    }
-
-
-            //    List<string> words = line.Split(' ').ToList();
-
-            //    foreach (var word in words)
-            //    {
-            //        if (currentLineUsage + word.Length > canvasWidth)
-            //        {
-            //            if (currentLineIndex + 1 < canvasHeight)
-            //            {
-
-
-
-            //                currentLineIndex++;
-            //                currentLineUsage = 0;
-            //                //draw here
-            //                keyValuePairs.Add(currentLineIndex + " " + currentLineUsage, word);
-
-            //                currentLineUsage = word.Length + 1;
-
-            //            }
-            //            else
-            //            {
-            //                Section section = new Section();
-            //                section.Text = currentSectionString;
-            //                section.keyValuePairs = keyValuePairs;
-            //                keyValuePairs = new Dictionary<string, string>();
-            //                sections.Add(section);
-
-
-            //                break;
-            //            }
-            //        }
-            //        else
-            //        {
-            //            //draw here
-            //            keyValuePairs.Add(currentLineIndex + " " + currentLineUsage, word);
-            //            currentLineUsage = currentLineUsage + word.Length + 1;
-            //        }
-            //    }
-            //}
-
-            return sections;
-
-        }
-
+        /// <summary>
+        /// Note : List<Tuple<section_id,line_id,word,line_index,linePosition>>
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="canvasHeight"></param>
+        /// <param name="canvasWidth"></param>
+        /// <returns></returns>
         public static List<Tuple<int, int, string, int, int>> GetTextAnimationData(string text, int canvasHeight, int canvasWidth)
         {
             List<string> lines = text.Split('\n').ToList();
@@ -379,44 +320,120 @@ namespace Joke_Video_Generator
 
         }
 
-        public static void ApplyTextAnimationOnVideo(List<Tuple<int, int, string, int, int>> textData, int voiceClipPlayTime, string VideoPath)
+        //sectionid,lineid,word,line index , position in line
+        public static void ApplyTextAnimationOnVideo(List<Tuple<int, int, string, int, int>> tds, double videoPlayTime, int xOff, int yOff, int char_lenght, int line_height, int fontSize, string fontColor)
         {
-            var sectionIds = textData.Select(t => t.Item1).Distinct().ToList();
+            deleteAllRelatedVideos();
+            copyVideo();
 
-            double intervelBetweenWords = (double)voiceClipPlayTime / textData.Count();
+
+            var sIds = tds.Select(t => t.Item1).Distinct().ToList();
+            double timeBetweenWords = videoPlayTime / tds.Count();
+            int workCount = 0;
+            double intervelBetweenWords = videoPlayTime / tds.Count();
+
+            Queue<Tuple<double, double, string, int, int>> data = new Queue<Tuple<double, double, string, int, int>>();
+
+            int cumilated_wordcount = 0;
 
 
-            Dictionary<int, double> sectionsData = new Dictionary<int, double>();
-
-            foreach (int sectionId in sectionIds)
+            foreach (var sId in sIds)
             {
-                int sdfsd = textData.Where(t => t.Item1 == sectionId).Count();
-                int eefd = textData.Count();
-                double sdfse = ((double)sdfsd / (double)eefd) * voiceClipPlayTime;
-                sectionsData.Add(sectionId, sdfse);
+                var related_tds = tds.Where(t => t.Item1 == sId).ToList();
+                double endTimeForTheSection = timeBetweenWords * (cumilated_wordcount + related_tds.Count());
+
+                foreach (var td in related_tds)
+                {
+                    double startTime = workCount * timeBetweenWords;
+                    int positionX = xOff + (char_lenght * td.Item5);
+                    int positionY = yOff + (line_height * td.Item4);
+
+                    startTime = Math.Round(startTime, 2, MidpointRounding.AwayFromZero);
+
+
+                    data.Enqueue(Tuple.Create(startTime, endTimeForTheSection, td.Item3, positionX, positionY));
+
+                    //AddWordsFfmpeg(vp, startTime, endTimeForTheSection, td.Item3, positionX, positionY);
+
+                    workCount++;
+                }
+
+                cumilated_wordcount += related_tds.Count();
+
             }
 
-            double ExternelCumilatedSecounds = 0;
+            int sourceVideoPostFix = 1;
+            int wordAmountForOneConvertion = 40;
+            bool breakParentLoop = false;
 
-            foreach(int sectionId in sectionIds)
+
+            while (0 < data.Count())
             {
-                var currentSectionRelatedData = textData.Where(t => t.Item1 == sectionId).ToList();
-                double startTime = cumilatedSecounds + 
+                List<Tuple<double, double, string, int, int>> dataForConvertion = new List<Tuple<double, double, string, int, int>>();
 
+                for (int x = 0; x < 20; x++)
+                {
+                    if (data.Count() == 0) break;
+                    dataForConvertion.Add(data.Dequeue());
+
+                }
+
+
+
+                var command = generateTextAnimationCommand($"TextAdded/video{sourceVideoPostFix}.mp4", $"TextAdded/video{sourceVideoPostFix + 1}.mp4", dataForConvertion, fontSize, fontColor);
+                int res = ExecuteFFMpeg(command);
+                sourceVideoPostFix++;
             }
 
+            
+            var sdfsrer = 0;
 
 
+        }
 
-            foreach (var word in textData)
+        private static void copyVideo()
+        {
+            File.Copy("VoiceAndChrAdded/video1.mp4", "TextAdded/video1.mp4");
+        }
+
+        private static void deleteAllRelatedVideos()
+        {
+            ClearFolder("TextAdded");
+        }
+
+
+        private static void ClearFolder(string FolderName)
+        {
+            DirectoryInfo dir = new DirectoryInfo(FolderName);
+
+            foreach (FileInfo fi in dir.GetFiles())
             {
+                try
+                {
+                    fi.Delete();
+                }
+                catch (Exception) { } // Ignore all exceptions
+            }
 
-                //timing calculations
-
-                //  string command = $"-i video.mp4 -filter_complex \"drawtext=text='{word}':fontfile=Arial.ttf:x={}:y={}:enable='between(t,2,6)',fade=t=in:start_time=2.0:d=0.5:alpha=1,fade=t=out:start_time=5.5:d=0.5:alpha=1\" -c:a copy video1.mp4";
+            foreach (DirectoryInfo di in dir.GetDirectories())
+            {
+                ClearFolder(di.FullName);
+                try
+                {
+                    di.Delete();
+                }
+                catch (Exception) { } // Ignore all exceptions
             }
         }
 
+        private static void AddWordFfmpeg(string vp, double startTime, double endTimeForTheSection, string word, int positionX, int positionY)
+        {
+
+            string command = $"-i video.mp4 -filter_complex \"drawtext=text='Summer Video':fontfile=Arial.ttf:x=0:y=0:enable='between(t,2,6)',fade=t=in:start_time=2.0:d=0.5:alpha=1,fade=t=out:start_time=5.5:d=0.5:alpha=1\" -c:a copy video1.mp4";
+
+
+            ExecuteFFMpeg(command);
+        }
 
         private static bool NoEnoughSpaceInCurrentCanasLine(string word, int canvasLineUsage, int canvasWidth)
         {
@@ -449,35 +466,6 @@ namespace Joke_Video_Generator
 
 
 
-        //public DataTable GetDataTable(int columns, int canvasHeight)
-        //{
-        //    DataTable dataTable = new();
-
-        //    for(int x=0; x<columns; x++)
-        //    {
-        //        dataTable.Columns.Add(new DataColumn(x.ToString()));
-        //    }
-        //    for(int y=0;y<canvasHeight;y++)
-        //    {
-        //        dataTable.Rows.Add()
-        //    }
-
-        //    return dataTable;
-        //}
-
-
-        //public DataTable GetDataTableFromJoke(Joke joke,int canvasHeight, int canvasWidth)
-        //{
-        //    DataTable dataTable = new DataTable();
-
-        //    for(int x=0; x<canvasWidth; x++)
-        //    {
-        //        dataTable.Columns.Add(new DataColumn(x.ToString()));
-        //    }
-
-
-
-        //}
 
         public static void DrawTexts(Joke joke, int writing_speed)
         {
