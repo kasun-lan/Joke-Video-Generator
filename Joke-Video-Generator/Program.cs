@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Entity;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -115,32 +116,12 @@ namespace Joke_Video_Generator
 
 
 
-          //  ExecuteFFMpeg("-i video1.mp4 -filter_complex \"drawtext=text='...and Mr. Holmes '\\\\\\''turned'\\\\\\'' to his assistant\\: Tell me, Watson, what do you see?':fontfile=Arial.ttf:x=0:y=0:enable='between(t,2,6)',fade=t=in:start_time=2.0:d=0.5:alpha=1,fade=t=out:start_time=5.5:d=0.5:alpha=1\" -c:a copy video2.mp4", true);
+            //  ExecuteFFMpeg("-i video1.mp4 -filter_complex \"drawtext=text='...and Mr. Holmes '\\\\\\''turned'\\\\\\'' to his assistant\\: Tell me, Watson, what do you see?':fontfile=Arial.ttf:x=0:y=0:enable='between(t,2,6)',fade=t=in:start_time=2.0:d=0.5:alpha=1,fade=t=out:start_time=5.5:d=0.5:alpha=1\" -c:a copy video2.mp4", true);
 
 
-            using (Context context = new Context())
+            using ( context = new Context())
             {
-                var y = $"Three lunatics approach their \"Asylum\" doctor with a request for a weekend pass to the local city. \n" +
-                    $" Thats impossible says the doctor. Youre all nuts.Youll get lost and never come back. But the lunatics \n" +
-                    $"wouldnt relent until finally exasperated and the doctor says OK! If you can answer a simple question Ill sign the \n" +
-                    $" pass. He turns to the first lunatic and says Whats three times three? The lunatic starts counting on his fingers 3 7 19 38?. Is it 128? \n";
-
-
-
-
-               var xx = context.Jokes.Where(j => j.id == "32rsy8").Single().body;
-                xx = xx.Replace('"', '\'').Replace("\\", "\\\\\\\\").Replace("'", "'\\\\\\''").Replace("%", "\\\\\\%").Replace(":", "\\\\\\:");
-
-
-                //List<Tuple<section_id, line_id, word, line_index, linePosition>>
-                var textData = GetTextAnimationData(xx, 15, 50);
-
-
-
-
-
-                ApplyTextAnimationOnVideo(textData, 20, 400, 100, 12, 40, 100, "black");
-
+               
 
 
 
@@ -149,6 +130,18 @@ namespace Joke_Video_Generator
 
 
         }
+
+
+        //phase <=> line
+        //bool videoPart(string line, int partIndex)
+        //{
+        //    SynthesizeText(line,$"tts/{partIndex}.mp3");
+        //}
+
+
+
+
+
 
         // [START tts_synthesize_text]
         /// <summary>
@@ -260,9 +253,42 @@ namespace Joke_Video_Generator
         /// <param name="canvasHeight"></param>
         /// <param name="canvasWidth"></param>
         /// <returns></returns>
-        public static List<Tuple<int, int, string, int, int>> GetTextAnimationData(string text, int canvasHeight, int canvasWidth)
+        public static List<Tuple<int, int, string, int, int>> GetTextAnimationData(string text, int canvasHeight, int canvasWidth, int? noOfwordsPerLine = null)
         {
-            List<string> lines = text.Split('\n').ToList();
+            List<string> lines = new List<string>();
+
+            if (lines == null)
+            {
+                lines = text.Split('\n').ToList();
+            }
+            else
+            {
+                Queue<string> queue = new Queue<string>(text.Split(' ').ToList());
+
+                while (queue.Count() > 0)
+                {
+                    string line = "";
+
+                    if (queue.Count() >= noOfwordsPerLine)
+                    {
+                        for (int x = 0; x < noOfwordsPerLine; x++)
+                        {
+                            line += queue.Dequeue();
+                            line += " ";
+                        }
+                    }
+                    else
+                    {
+                        while (queue.Count() > 0)
+                        {
+                            line += queue.Dequeue();
+                            line += " ";
+                        }
+                    }
+
+                    lines.Add(line);
+                }
+            }
             lines = lines.Select(l => l.Trim()).ToList();
             lines.RemoveAll(l => string.IsNullOrEmpty(l));
 
@@ -385,7 +411,7 @@ namespace Joke_Video_Generator
                 sourceVideoPostFix++;
             }
 
-            
+
             var sdfsrer = 0;
 
 

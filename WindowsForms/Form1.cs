@@ -1,5 +1,7 @@
 ﻿using Google.Cloud.TextToSpeech.V1;
-//using NAudio.Wave;
+using Microsoft.WindowsAPICodePack.Shell;
+using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
+using NAudio.Wave;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -18,47 +20,163 @@ namespace WindowsForms
 {
     public partial class Form1 : Form
     {
+        const int _minimumNoOfLinesForStory = 4;
+
         public Form1()
         {
             InitializeComponent();
         }
 
+        void test1()
+        {
+
+            string line = "My grandpa was stationed in Germany after the war. And when I was very small he told me about this little restaurant that served THE best Bavarian cream pie. Apparently he went there every opportunity he had. He couldn't get enough of that Bavarian cream pie - it was absolutely unreal.";
+
+            //"line" එකට අදාළ text animation data ලබාගන්නවා
+
+
+
+            line = EncodeForFFmpeg(line);
+
+            var textAnimationData = GetTextAnimationData(line, 5, 50, 5);
+
+
+
+            //intermediate folder එකේ මේ part එකට අදාල intemediate video generate කරලා අන්තිමට generate වෙච්ච video එකේ
+            // id එකගන්නවා.
+            int final_video_id = ApplyTextAnimationLineByLine(textAnimationData, 20, 600, 100, 25, 40, 40, "white");
+        }
+        void test2()
+        {
+            List<string> vs = new List<string>()
+            {
+                "My grandpa was stationed in Germany after the war. And when I was very small he told me about this little restaurant that served THE best Bavarian cream pie. Apparently he went there every opportunity he had. He couldn't get enough of that Bavarian cream pie - it was absolutely unreal.",
+                "Well, a few years ago, my grandpa found out that he had a terminal illness, and only had a few months left to live. So, he booked a deluxe vacation cruise to Europe that would eventually take him to that little town in Germany with the famous Bavarian cream pie.",
+                "A few weeks into the cruise, the ship started slowly sinking off of the coast of Portugal. I don't know if you remember that, but it was all over the news at the time. Well the life raft that my grandpa was in also turned out to be slowly leaking. So he helped all of the people that were in his life raft onto another one, but he wouldn't get on himself because it was already so overloaded. So, my grandpa, and I'm not making this up. This was in the news. My grandpa, at 84 years old, swims for over a mile in the Atlantic Ocean to the coast of Portugal.",
+                "Water-logged and exhausted, he hitches a ride and gets dropped off about 100 miles outside his destination in Germany. Trying to cross a main highway, he gets clipped by the side mirror of a car, but not badly, and he manages to hitch another ride with some people headed for Germany.",
+                "Eventually he catches a bus and arrives in this little town in Germany that he remembered from his youth. He's thrilled to find the old restaurant that he'd loved so much 60 years ago, and he walks in and takes his usual seat at the table by the window. The waitress comes over and my grandpa says, (my grandpa spoke German fluently, by the way), he says, I know exactly what I want. You have no idea what I've had to go through to get here. I would love a nice big slice of your wonderful Bavarian cream pie.",
+                "The waitress says, Sorry, Sir - but we're all out of Bavarian cream.",
+                "My grandpa says, Apple's fine."
+            };
+
+            CreateAJokeVideo(vs);
+
+
+            int sdfser = 0;
+        }
+
+
         private void Form1_Load(object sender, EventArgs e)
         {
 
-            SpeechToText("test1.wav");
+            //test1();
+            test2();
+            
+            
+
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="story">there should be many prerequisits.</param>
+        /// <returns></returns>
+        void CreateAJokeVideo(List<string> storyLines)
+        {
+            if(storyLines.Count() < _minimumNoOfLinesForStory)
+            {
+               // throw new Exception("storyLines.Count() < _minimumNoOfLinesForStory");
+            }
+            
+            ClearFilesInFolder("parts");
+
+            int partIndex = 0;
+
+            //generate video parts
+            foreach(var line in storyLines)
+            {
+                videoPart(line, partIndex);
+                partIndex++;
+            }
+
+            //parts ටික එකතු කරලා complete video එක හදනවා
+
+            
+        }
 
 
-            //var x = dbData("test1.mp3");
-
-            //var tempasdfsd = 0;
-
-            // string command = $"-i \"video.mp4\" -vf drawtext=\"fontfile=Arial.ttf:text=hello:x=mod(t*100\\,w):y=(x*h)/w\" \"video1.mp4\" ";
-            // string command = File.ReadAllText("temp.txt");
-            //string command = "-i video.mp4 -filter_complex \"drawtext=text='Summer Video':fontfile=Arial.ttf:x=0:y=0:enable='between(t,2,6)',fade=t=in:start_time=2.0:d=0.5:alpha=1,fade=t=out:start_time=5.5:d=0.5:alpha=1\" -c:a copy video1.mp4";
-            // ExecuteFFMpeg(command);
-
-            //[fg];[0][fg]overlay=format=(auto),format=(yuv420p)
-
-            // Json();
-            //Json1();
-
-            //string text = File.ReadAllText("story.txt");
-
-            //SynthesizeText(text, "test2.mp3");
-
-            //var story = File.ReadAllText("story1.txt");
-
-            //var temo = 0;
-
-            //var xx = story.Split('\n');
-
-            //var sdfsdfds = 0;
+        string EncodeForFFmpeg(string line)
+        {
+           return line.Replace("\"", "").Replace("'", "").Replace("%", "\\\\\\%").Replace(":", "\\\\\\:");
+        }
 
 
-            var dbdata = dbData("audiofiles/audio.mp3");
+        bool videoPart(string line, int partIndex)
+        {
+            //ffmpeg drawtext filter එකේ text එක විදියට පාවිච්චි කරන්න පුළුවන් විදියට input line එක වෙනස් කරගන්නවා.
+            line = EncodeForFFmpeg(line);
 
-            GenerateTextFileForFfmpeg(dbdata, 20, "textfiles/input.txt");
+            //parts වලට අදාළ files delete කරනවා.
+            deleteRelatedFiles();
+
+
+
+            string audioFilePath = $"audiofiles/{partIndex}.mp3";
+            string textFilePath = $"textfiles/{partIndex}.txt";
+            string videoWithoutAudio = $"videofiles/without_audio_{partIndex}.mp4";
+            string videoWithAudio = $"videofiles/with_audio_{partIndex}.mp4";
+            double AudioDuration = 0;
+
+
+            //line එකට අදල audio file එක tts වලින් අරගෙන save කරගන්නවා
+            SynthesizeText(line, audioFilePath);
+
+
+            //audio file එකේ play time එක ගන්නවා
+            AudioDuration = Math.Round(new AudioFileReader(audioFilePath).TotalTime.TotalSeconds,1, MidpointRounding.AwayFromZero);
+
+
+            // ඉස්සෙල්ලා ගත්ත audio file එකට අදාළ 'silent' data ගන්නවා
+            var data = dbData(audioFilePath);
+
+            // animation එක හදන්න අවශ්‍ය text file එක generate කරගන්නවා
+            //, කලින් ගත්ත data පාවිච්චි කරලා
+            GenerateTextFileForFfmpeg(data, 20, textFilePath);
+
+            //කලින් generate කරගත්ත text file එක පාවිච්චි කරලා video එක generate කරගනන්නවා
+            ExecuteFFMpeg($"-f concat -i {textFilePath} -vsync vfr -pix_fmt yuv420p {videoWithoutAudio}",false);
+
+            //වීඩියෝ file එකයි audio file එකයි එකතු කරගන්නවා.
+            ExecuteFFMpeg($"-i {videoWithoutAudio} -i {audioFilePath} -map 0:v -map 1:a -c:v copy -shortest {videoWithAudio}",false);
+
+
+            //කලින් හදාගත්ත video එක "intermediate" folder එකට copy කරගන්නවා
+            File.Copy(videoWithAudio, "intermediate/video1.mp4");
+
+            //"line" එකට අදාළ text animation data ලබාගන්නවා
+            var textAnimationData = GetTextAnimationData(line, 5, 50, 5);
+
+            
+
+            //intermediate folder එකේ මේ part එකට අදාල intemediate video generate කරලා අන්තිමට generate වෙච්ච video එකේ
+            // id එකගන්නවා.
+            int final_video_id = ApplyTextAnimationLineByLine(textAnimationData, AudioDuration, 600, 100, 25, 50, 40, "white");
+
+            //අන්තිමට intermediate folder එකේ generate වෙච්ච video එක parts folder එකට copy කරගන්නවා.
+            File.Copy($"intermediate/video{final_video_id}.mp4", $"parts/part{partIndex}.mp4");
+
+            return true;
+
+        }
+
+        private static TimeSpan GetDuration(string filePath)
+        {
+            using (var shell = ShellObject.FromParsingName(filePath))
+            {
+                IShellProperty prop = shell.Properties.System.Media.Duration;
+                var t = (ulong)prop.ValueAsObject;
+                return TimeSpan.FromTicks((long)t);
+            }
         }
 
 
@@ -82,6 +200,8 @@ namespace WindowsForms
             var dbdata = dbData("audiofiles/audio.mp3");
 
             GenerateTextFileForFfmpeg(dbdata, 20, "textfiles/input.txt");
+
+
 
         }
 
@@ -124,14 +244,132 @@ namespace WindowsForms
 
             }
 
-            File.WriteAllText("textfiles/input.txt", stringBuilder.ToString());
+            File.WriteAllText(outputTextfileName, stringBuilder.ToString());
 
-            ExecuteFFMpeg("-f concat -i textfiles/input.txt -vsync vfr -pix_fmt yuv420p videofiles/output.mp4");
-
-
-            var sdfsdf = 0;
         }
 
+        public static List<Tuple<int, int, string, int, int>> GetTextAnimationData(string text, int canvasHeight, int canvasWidth, int? noOfwordsPerLine = null)
+        {
+            List<string> lines = new List<string>();
+
+            if (lines == null)
+            {
+                lines = text.Split('\n').ToList();
+            }
+            else
+            {
+                Queue<string> queue = new Queue<string>(text.Split(' ').ToList());
+
+                while (queue.Count() > 0)
+                {
+                    string line = "";
+
+                    if (queue.Count() >= noOfwordsPerLine)
+                    {
+                        for (int x = 0; x < noOfwordsPerLine; x++)
+                        {
+                            line += queue.Dequeue();
+                            line += " ";
+                        }
+                    }
+                    else
+                    {
+                        while (queue.Count() > 0)
+                        {
+                            line += queue.Dequeue();
+                            line += " ";
+                        }
+                    }
+
+                    lines.Add(line);
+                }
+            }
+            lines = lines.Select(l => l.Trim()).ToList();
+            lines.RemoveAll(l => string.IsNullOrEmpty(l));
+
+            int canvasLineIndex = 0;
+            int canvasLineUsage = 0;
+            int currenSectionId = 0;
+            //sectionid , line id , word , line index , lineusage 
+            List<Tuple<int, int, string, int, int>> tuples = new List<Tuple<int, int, string, int, int>>();
+            int i = 0;
+
+            while (i < lines.Count)
+            {
+                if (NoEnoughSpaceInCanvas(lines[i], canvasWidth, canvasHeight, canvasLineIndex, canvasLineUsage))
+                {
+                    currenSectionId++;
+                    canvasLineIndex = 0;
+                    canvasLineUsage = 0;
+                }
+
+                List<string> words = lines[i].Split(' ').ToList();
+
+                foreach (string word in words)
+                {
+                    if (NoEnoughSpaceInCurrentCanasLine(word, canvasLineUsage, canvasWidth))
+                    {
+                        canvasLineIndex++;
+                        canvasLineUsage = 0;
+                    }
+
+                    tuples.Add(Tuple.Create(currenSectionId, i, word, canvasLineIndex, canvasLineUsage));
+                    canvasLineUsage = canvasLineUsage + word.Length + 1;
+                }
+
+                if (canvasLineIndex > (canvasHeight - 1))
+                {
+                    //
+                    currenSectionId++;
+                    canvasLineIndex = 0;
+                    canvasLineUsage = 0;
+
+
+                    tuples.RemoveAll(t => t.Item2 == i);
+
+                }
+                else
+                {
+                    i++;
+                }
+            }
+
+
+
+
+            return tuples;
+
+        }
+
+        private static bool NoEnoughSpaceInCurrentCanasLine(string word, int canvasLineUsage, int canvasWidth)
+        {
+            if ((canvasWidth - canvasLineUsage) < word.Length)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+
+        private static bool NoEnoughSpaceInCanvas(string line, int canvasWidth, int canvasHeight, int canvasLineIndex, int canvasLineUsage)
+        {
+            int spacesInCurrentLine = canvasWidth - canvasLineUsage;
+            int OtherLines = canvasHeight - canvasLineIndex - 1;
+            int spacesInFullLines = OtherLines * canvasWidth;
+            int allSpacesLeft = spacesInFullLines + spacesInCurrentLine;
+
+            if (allSpacesLeft < line.Length)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
 
 
@@ -240,6 +478,37 @@ namespace WindowsForms
             return true;
         }
 
+
+        public static int ExecuteFFMpeg(string arguments, bool usingCMD = false)
+        {
+            try
+            {
+                if (usingCMD)
+                {
+                    Process process = new Process();
+                    process.StartInfo.UseShellExecute = true;
+                    process = Process.Start("cmd.exe", $@"/k ffmpeg.exe {arguments}");
+                    process.WaitForExit();
+                    return 123123;
+                }
+
+                Process ffmpegProcess = new Process();
+                ffmpegProcess.StartInfo.FileName = "ffmpeg.exe";
+                ffmpegProcess.StartInfo.CreateNoWindow = true;
+                ffmpegProcess.StartInfo.Arguments = arguments;
+                ffmpegProcess.Start();
+                ffmpegProcess.WaitForExit();
+                int x = 0;
+                return ffmpegProcess.ExitCode;
+
+            }
+            catch (Exception e)
+            {
+                return -1;
+            }
+
+        }
+
         public static void Json()
         {
 
@@ -321,6 +590,234 @@ namespace WindowsForms
         }
 
 
+        public static int ApplyTextAnimationLineByLine(List<Tuple<int, int, string, int, int>> tds, double videoPlayTime, int xOff, int yOff, int char_lenght, int line_height, int fontSize, string fontColor)
+        {
+            //ඔක්කොම session id ටික ගන්නවා
+            var sIds = tds.Select(t => t.Item1).Distinct().ToList();
+            //වචන අතර time gap එක ගන්නවා (මේ වචන ටිකට අදාළ voice clip එකේ duration එක මත රදාපවතිනවා)
+            double timeBetweenWords = videoPlayTime / tds.Count();
+            int workCount = 0;
+
+            //queue එකක් හදාගන්නවා (startTime,endTimeForTheSection,line,positionX,positionY)
+            Queue<Tuple<double, double, string, int, int>> data = new Queue<Tuple<double, double, string, int, int>>();
+
+            int cumilated_wordcount = 0;
+
+
+            foreach (var sId in sIds)
+            {
+                //සලකන section එකට අදාළ data ටික ගන්නවා.
+                var related_tds = tds.Where(t => t.Item1 == sId).ToList();
+
+                //මේ section එකේ සියලුම text disapear වෙන වෙලාව ගණනය කරනවා.
+                double endTimeForTheSection = timeBetweenWords * (cumilated_wordcount + related_tds.Count());
+                if(endTimeForTheSection == videoPlayTime)
+                {
+                    endTimeForTheSection = endTimeForTheSection -= 0.2;
+                }
+
+
+                //සලකන section එකට අදාළ line no සේරම ගන්නව
+                List<int> lineNos = related_tds.Select(td => td.Item4).Distinct().ToList();
+
+                foreach(var lineNo in lineNos)
+                {
+                   var relatedTdsForLine = related_tds.Where(td => td.Item4 == lineNo).ToList();
+                    string line = "";
+
+
+
+                    foreach(var relatedTd in relatedTdsForLine)
+                    {
+                        line += relatedTd.Item3;
+                        line += " ";
+                    }
+
+                    double startTime = cumilated_wordcount * timeBetweenWords;
+
+                    int positionX = xOff;
+                    int positionY = yOff + (line_height * lineNo);
+
+                    data.Enqueue(Tuple.Create(startTime, endTimeForTheSection, line, positionX, positionY));
+
+                    cumilated_wordcount += relatedTdsForLine.Count();
+                }
+
+
+            }
+
+            int sourceVideoPostFix = 1;
+
+
+
+            while (0 < data.Count())
+            {
+                List<Tuple<double, double, string, int, int>> dataForConvertion = new List<Tuple<double, double, string, int, int>>();
+
+                for (int x = 0; x < 20; x++)
+                {
+                    if (data.Count() == 0) break;
+                    dataForConvertion.Add(data.Dequeue());
+
+                }
+
+
+
+                var command = generateTextAnimationCommand($"Intermediate/video{sourceVideoPostFix}.mp4", $"Intermediate/video{sourceVideoPostFix + 1}.mp4", dataForConvertion, fontSize, fontColor);
+                int res = ExecuteFFMpeg(command, false);
+                sourceVideoPostFix++;
+            }
+
+
+
+
+
+            return sourceVideoPostFix;
+
+
+        }
+
+
+
+
+        //sectionid,lineid,word,line index , position in line
+        public static int ApplyTextAnimationWordByWord(List<Tuple<int, int, string, int, int>> tds, double videoPlayTime, int xOff, int yOff, int char_lenght, int line_height, int fontSize, string fontColor)
+        {
+            //ඔක්කොම session id ටික ගන්නවා
+            var sIds = tds.Select(t => t.Item1).Distinct().ToList();
+            //වචන අතර time gap එක ගන්නවා (මේ වචන ටිකට අදාළ voice clip එකේ duration එක මත රදාපවතිනවා)
+            double timeBetweenWords = videoPlayTime / tds.Count();
+            int workCount = 0;
+
+            //queue එකක් හදාගන්නවා (startTime,endTimeForTheSection,word,positionX,positionY)
+            Queue<Tuple<double, double, string, int, int>> data = new Queue<Tuple<double, double, string, int, int>>();
+
+            int cumilated_wordcount = 0;
+
+
+            foreach (var sId in sIds)
+            {
+                //සලකන section එකට අදාළ data ටික ගන්නවා.
+                var related_tds = tds.Where(t => t.Item1 == sId).ToList();
+
+                //මේ section එකේ සියලුම text disapear වෙන වෙලාව ගණනය කරනවා.
+                double endTimeForTheSection = timeBetweenWords * (cumilated_wordcount + related_tds.Count());
+
+                foreach (var td in related_tds)
+                {
+                    //මෙම වචනයට අදාළ startime එක ගණනය කරනවා
+                    double startTime = workCount * timeBetweenWords;
+
+                    //මෙමේ වචනයට අදාළ position එක ගණනය කරනවා.
+                    int positionX = xOff + (char_lenght * td.Item5);
+                    int positionY = yOff + (line_height * td.Item4);
+
+                    //starttime එක දශම ස්ථාන දෙකකට වටයාගන්නවා
+                    startTime = Math.Round(startTime, 2, MidpointRounding.AwayFromZero);
+
+
+                    //data object එකට කලින් හොයාගත්ත data ටික දාගන්නවා.
+                    data.Enqueue(Tuple.Create(startTime, endTimeForTheSection, td.Item3, positionX, positionY));
+
+                    //AddWordsFfmpeg(vp, startTime, endTimeForTheSection, td.Item3, positionX, positionY);
+
+                    workCount++;
+                }
+
+                cumilated_wordcount += related_tds.Count();
+
+            }
+
+            int sourceVideoPostFix = 1;
+         
+
+
+            while (0 < data.Count())
+            {
+                List<Tuple<double, double, string, int, int>> dataForConvertion = new List<Tuple<double, double, string, int, int>>();
+
+                for (int x = 0; x < 20; x++)
+                {
+                    if (data.Count() == 0) break;
+                    dataForConvertion.Add(data.Dequeue());
+
+                }
+
+
+
+                var command = generateTextAnimationCommand($"Intermediate/video{sourceVideoPostFix}.mp4", $"Intermediate/video{sourceVideoPostFix + 1}.mp4", dataForConvertion, fontSize, fontColor);
+                int res = ExecuteFFMpeg(command,false);
+                sourceVideoPostFix++;
+            }
+
+
+
+
+
+            return sourceVideoPostFix;
+
+
+        }
+
+        private static void copyVideo()
+        {
+        }
+
+        private static void deleteRelatedFiles()
+        {
+            ClearFilesInFolder("textfiles");
+            ClearFilesInFolder("audiofiles");
+            ClearFilesInFolder("intermediate");
+            ClearFilesInFolder("videofiles");
+
+
+        }
+
+
+        private static void ClearFilesInFolder(string FolderName)
+        {
+            DirectoryInfo dir = new DirectoryInfo(FolderName);
+
+            foreach (FileInfo fi in dir.GetFiles())
+            {
+                try
+                {
+                    fi.Delete();
+                }
+                catch (Exception) { } // Ignore all exceptions
+            }
+
+        }
+
+
+        //starttime,endtime,word,positionx,positiony
+        static string generateTextAnimationCommand(string sourceVideoPath, string destinationVideoPath, List<Tuple<double, double, string, int, int>> data, int fontSize, string fontColor)
+        {
+
+
+
+
+            string startingPart = $"-i {sourceVideoPath} -filter_complex \"";
+            string endingPart = $"\" -c:a copy {destinationVideoPath} ";
+
+            string middlePart = "";
+
+            int counter = 0;
+
+            foreach (var tuple in data)
+            {
+                if (counter > 40) { break; }
+                middlePart += $" drawtext=text='{tuple.Item3}':fontfile=Arial.ttf:x={tuple.Item4}:y={tuple.Item5}:fontcolor={fontColor}:shadowy=2:shadowcolor=white:fontsize={fontSize}:enable='between(t,{tuple.Item1.ToString()},{tuple.Item2.ToString()})',fade=t=in:start_time={tuple.Item1.ToString()}:d=0.0:alpha=1,fade=t=out:start_time={tuple.Item2.ToString()}:d=0.0:alpha=1 , ";
+                counter++;
+            }
+            middlePart = middlePart.Trim();
+            middlePart = middlePart.Remove(middlePart.Length - 1);
+            middlePart = middlePart.Trim();
+
+            string command = startingPart + middlePart + endingPart;
+
+            return command;
+        }
 
         public static List<Section> GetSectionsFromJoke(Joke joke, int canvasHeight, int canvasWidth)
         {
