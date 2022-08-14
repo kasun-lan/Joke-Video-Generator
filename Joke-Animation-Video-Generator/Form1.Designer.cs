@@ -50,6 +50,7 @@ namespace Joke_Animation_Video_Generator
             this.button5 = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.checkBox9 = new System.Windows.Forms.CheckBox();
             this.button13 = new System.Windows.Forms.Button();
             this.checkBox8 = new System.Windows.Forms.CheckBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
@@ -81,7 +82,6 @@ namespace Joke_Animation_Video_Generator
             this.button6 = new System.Windows.Forms.Button();
             this.label12 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
-            this.checkBox9 = new System.Windows.Forms.CheckBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -343,6 +343,18 @@ namespace Joke_Animation_Video_Generator
             this.tabPage1.Text = "Main";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
+            // checkBox9
+            // 
+            this.checkBox9.AutoSize = true;
+            this.checkBox9.Location = new System.Drawing.Point(189, 532);
+            this.checkBox9.Margin = new System.Windows.Forms.Padding(2);
+            this.checkBox9.Name = "checkBox9";
+            this.checkBox9.Size = new System.Drawing.Size(124, 29);
+            this.checkBox9.TabIndex = 16;
+            this.checkBox9.Text = "Add Outro";
+            this.checkBox9.UseVisualStyleBackColor = true;
+            this.checkBox9.CheckedChanged += new System.EventHandler(this.checkBox9_CheckedChanged);
+            // 
             // button13
             // 
             this.button13.Location = new System.Drawing.Point(980, 528);
@@ -362,6 +374,7 @@ namespace Joke_Animation_Video_Generator
             this.checkBox8.TabIndex = 14;
             this.checkBox8.Text = "Upload Shorts";
             this.checkBox8.UseVisualStyleBackColor = true;
+            this.checkBox8.CheckedChanged += new System.EventHandler(this.checkBox8_CheckedChanged);
             // 
             // tabPage2
             // 
@@ -680,17 +693,6 @@ namespace Joke_Animation_Video_Generator
             this.label11.Size = new System.Drawing.Size(119, 25);
             this.label11.TabIndex = 0;
             this.label11.Text = "Outro Video :";
-            // 
-            // checkBox9
-            // 
-            this.checkBox9.AutoSize = true;
-            this.checkBox9.Location = new System.Drawing.Point(189, 532);
-            this.checkBox9.Margin = new System.Windows.Forms.Padding(2);
-            this.checkBox9.Name = "checkBox9";
-            this.checkBox9.Size = new System.Drawing.Size(124, 29);
-            this.checkBox9.TabIndex = 16;
-            this.checkBox9.Text = "Add Outro";
-            this.checkBox9.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 

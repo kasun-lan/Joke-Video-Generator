@@ -1964,5 +1964,27 @@ namespace Joke_Animation_Video_Generator
             //}
             //File.WriteAllText(outputTextfileName, stringBuilder.ToString());
         }
+
+        private void checkBox8_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBox8.Checked == true)
+            {
+                if (checkBox9.Checked)
+                {
+                    checkBox9.Checked = false;
+                }
+            }
+        }
+
+        private void checkBox9_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBox9.Checked == true)
+            {
+                if (checkBox8.Checked)
+                {
+                    checkBox8.Checked = false;
+                }
+            }
+        }
     }
 }
