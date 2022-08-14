@@ -17,6 +17,9 @@ using System.Speech.Recognition;
 using Microsoft.WindowsAPICodePack.Shell;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
 using System.Threading;
+using Google.Apis.YouTube.v3.Data;
+using System.Drawing.Imaging;
+using System.Web;
 
 namespace Joke_Animation_Video_Generator
 {
@@ -25,6 +28,8 @@ namespace Joke_Animation_Video_Generator
         const int _minimumNoOfLinesForStory = 4;
         CancellationTokenSource _cts = null;
         List<DateTime> _uploadTimes = null;
+        private static string _tts_json_link = "json/tts.json";
+        Bitmap _bitmapNewBackgroundImage = null;
 
         public Form1()
         {
@@ -69,11 +74,11 @@ namespace Joke_Animation_Video_Generator
 
 
 
-       
+
         }
 
 
-    
+
 
 
         void testdb()
@@ -85,11 +90,79 @@ namespace Joke_Animation_Video_Generator
         }
 
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            testdb();
 
+        private void addOverlay(Image imageBackground, string overlayPath, string resultSavPath, int posX, int posY, double scale)
+        {
+            Image imageOverlay = Image.FromFile(overlayPath);
+            Image scaled = new Bitmap(imageOverlay, (int)(imageOverlay.Width * scale), (int)(imageOverlay.Height * scale));
+
+            Image img = new Bitmap(imageBackground.Width, imageBackground.Height);
+            using (Graphics gr = Graphics.FromImage(img))
+            {
+                gr.DrawImage(imageBackground, new Point(0, 0));
+                gr.DrawImage(scaled, new Point(posX, posY));
+            }
+            img.Save(resultSavPath, ImageFormat.Png);
         }
+
+
+        private async void Form1_Load(object sender, EventArgs e)
+        {
+            //temp
+
+           /// ExecuteFFMpeg(@"-f concat -i temp/videofiles.txt -c copy temp/contcated.mp4", false);
+
+            //ExecuteFFMpeg("-i temp/output.mp4 -c copy -bsf h264_mp4toannexb  temp/vid1.ts", true);
+            //ExecuteFFMpeg("-i temp/outro2.mp4 -c copy -bsf h264_mp4toannexb  temp/vid2.ts", true);
+            //ExecuteFFMpeg("-i \"concat: vid1.ts | vid2.ts\" -c copy temp/concated.mp4", true);
+
+           //  ExecuteFFMpeg("-i temp/output.mp4 -i temp/outro2.mp4 - filter_complex \"[0:v] [0:a] [1:v] [1:a] [2:v] [2:a] concat = n = 3:v = 1:a = 1[v][a]\" - map \"[v]\" - map \"[a]\" temp/output.mp4", true);
+
+         ///   NReco.VideoInfo.FFProbe instance = new NReco.VideoInfo.FFProbe();
+
+            int sdfjsldkfjsldf = 0;
+
+
+            //
+
+
+
+            await Youtube.LoadYoutubeServices();
+
+            button2.Enabled = false;
+
+            //   UploadVideo("output/output.mp4", "youtube titles", false);
+
+
+            //set datagridview
+            using (Context context = new Context())
+            {
+                dataGridView1.DataSource = context.Jokes.ToList();
+
+            }
+
+
+            //display current background image
+
+
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+
+            Image image = GetCopyImage("textfiles\\animation_images\\1.png");
+            pictureBox1.Image = image;
+
+
+            dataGridView1.Columns[5].ReadOnly = true;
+        }
+
+        private Image GetCopyImage(string path)
+        {
+            using (Image image = Image.FromFile(path))
+            {
+                Bitmap bitmap = new Bitmap(image);
+                return bitmap;
+            }
+        }
+
 
         /// <summary>
         /// 
@@ -104,18 +177,41 @@ namespace Joke_Animation_Video_Generator
             }
 
             ClearFilesInFolder("parts");
+            ClearFilesInFolder("output");
+            ClearFilesInFolder("sw_output");
+            File.Delete("outro/output.mp4");
+            File.Delete("outrooutput/output.mp4");
+
+
 
             int partIndex = 0;
+
+
 
             //generate video parts
             foreach (var line in storyLines)
             {
                 videoPart(line, partIndex);
+                richTextBox1.Invoke(new Action(() => richTextBox1.Text += $"part{partIndex} done. \n"));
                 partIndex++;
             }
+            //පාර්ට්ස් textfile එක හදනවා
+            StringBuilder stringBuilder = new StringBuilder();
+
+            for (int i = 0; i < storyLines.Count(); i++)
+            {
+                stringBuilder.AppendLine($"file 'part{i}.mp4'");
+            }
+
+            File.WriteAllText("parts/parts.txt", stringBuilder.ToString());
+
+
+            int sdfsdof = 0;
+
 
             //parts ටික එකතු කරලා complete video එක හදනවා
-
+            ExecuteFFMpeg(@"-f concat -safe 0 -i parts/parts.txt -c copy output/output.mp4", false);
+            richTextBox1.Invoke(new Action(() => richTextBox1.Text += $"Output done. \n"));
 
         }
 
@@ -437,44 +533,51 @@ namespace Joke_Animation_Video_Generator
 
         public static void SynthesizeText(string text, string filename)
         {
-
-            TextToSpeechClientBuilder textToSpeechClientBuilder = new TextToSpeechClientBuilder();
-            textToSpeechClientBuilder.CredentialsPath = "tts5.json";
-            TextToSpeechClient client = textToSpeechClientBuilder.Build();
-
-
-            var response = client.SynthesizeSpeech(new SynthesizeSpeechRequest
+            try
             {
 
+                TextToSpeechClientBuilder textToSpeechClientBuilder = new TextToSpeechClientBuilder();
+                textToSpeechClientBuilder.CredentialsPath = _tts_json_link;
+                TextToSpeechClient client = textToSpeechClientBuilder.Build();
 
-                Input = new SynthesisInput
+
+                var response = client.SynthesizeSpeech(new SynthesizeSpeechRequest
                 {
-                    Text = text,
 
-                },
-                // Note: voices can also be specified by name
-                Voice = new VoiceSelectionParams
+
+                    Input = new SynthesisInput
+                    {
+                        Text = text,
+
+                    },
+                    // Note: voices can also be specified by name
+                    Voice = new VoiceSelectionParams
+                    {
+                        LanguageCode = "en-US",
+                        SsmlGender = SsmlVoiceGender.Male,
+
+
+                    },
+                    AudioConfig = new AudioConfig
+                    {
+                        AudioEncoding = AudioEncoding.Mp3,
+                        SpeakingRate = 0.75,
+
+                    }
+
+
+                });
+
+                using (Stream output = File.Create(filename))
                 {
-                    LanguageCode = "en-US",
-                    SsmlGender = SsmlVoiceGender.Male,
+                    response.AudioContent.WriteTo(output);
 
-
-                },
-                AudioConfig = new AudioConfig
-                {
-                    AudioEncoding = AudioEncoding.Mp3,
-                    SpeakingRate = 0.75,
 
                 }
-
-
-            });
-
-            using (Stream output = File.Create(filename))
+            }
+            catch (Exception ex)
             {
-                response.AudioContent.WriteTo(output);
-
-
+                throw new Exception("tts exception");
             }
         }
 
@@ -527,11 +630,72 @@ namespace Joke_Animation_Video_Generator
         public static void Json()
         {
 
-            string jsonString = File.ReadAllText("reddit_jokes.json");
+            string jsonString = File.ReadAllText("temp/stupidstuff.json");
+
+
+            var records = JsonConvert.DeserializeObject<List<temp>>(jsonString);
 
 
 
-            var records = JsonConvert.DeserializeObject<Joke>(jsonString);
+
+
+
+            var records1 = records.Where(r => r.body.Length > 500 && r.body.Length < 2000).ToList();
+            var records2 = records1.Where(r => r.body.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList().Count() > 3).ToList();
+
+            foreach (var item in records2)
+            {
+                item.title = item.body.Split('\n').First().Split('.').First();
+                item.no_of_chr = item.body.Length;
+            }
+
+
+            List<Joke> newlist = new List<Joke>();
+
+            foreach (var item in records2)
+            {
+                Joke joke = new Joke()
+                {
+                    body = item.body,
+                    id = RandomString(10),
+                    no_of_charachter = item.no_of_chr,
+                    score = 0,
+                    title = item.title,
+                    used = false
+                };
+
+                newlist.Add(joke);
+            }
+
+
+            using (Context context = new Context())
+            {
+                var currentJOkesList = context.Jokes.ToList();
+
+                context.Jokes.RemoveRange(currentJOkesList);
+                context.SaveChanges();
+
+
+                foreach (var joke in newlist)
+                {
+                    context.Jokes.Add(joke);
+                }
+
+                context.SaveChanges();
+            }
+
+
+
+        }
+
+        class temp
+        {
+            public string body { get; set; }
+            public string category { get; set; }
+            public string id { get; set; }
+            public string rating { get; set; }
+            public int no_of_chr { get; set; }
+            public string title { get; set; }
         }
 
         public static void Json1()
@@ -978,7 +1142,8 @@ namespace Joke_Animation_Video_Generator
         //start
         private async void button1_Click(object sender, EventArgs e)
         {
-            
+            richTextBox1.Invoke(new Action(() => richTextBox1.Text += $"{DateTime.Now} Daily Cycle Started!\n"));
+
             _cts = new CancellationTokenSource();
             button2.Enabled = false;
             _uploadTimes = new List<DateTime>();
@@ -1009,9 +1174,9 @@ namespace Joke_Animation_Video_Generator
             try
             {
 
-                await Task.Run(MainLoop);
+                await Task.Run(TestMainLoop);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
 
             }
@@ -1020,6 +1185,8 @@ namespace Joke_Animation_Video_Generator
         //stop
         private void button2_Click(object sender, EventArgs e)
         {
+            richTextBox1.Invoke(new Action(() => richTextBox1.Text += $"{DateTime.Now}: Daily cycled stopped! \n"));
+
             _cts.Cancel();
             EnableControls();
 
@@ -1030,6 +1197,8 @@ namespace Joke_Animation_Video_Generator
             // throw new NotImplementedException();
             button2.Enabled = false;
             button1.Enabled = true;
+            button3.Enabled = true;
+            button4.Enabled = true;
             panel5.Enabled = true;
             checkBox5.Enabled = true;
         }
@@ -1039,76 +1208,335 @@ namespace Joke_Animation_Video_Generator
             // throw new NotImplementedException();
             button2.Enabled = true;
             button1.Enabled = false;
+            button3.Enabled = false;
+            button4.Enabled = false;
             panel5.Enabled = false;
             checkBox5.Enabled = false;
         }
 
 
+        async Task TestMainLoop()
+        {
+            try
+            {
+                while (true)
+                {
+                    //richTextBox1.Invoke(new Action(() => richTextBox1.Text += "test \n"));
+                    //Thread.Sleep(2000);
+
+
+                    DateTime? dateTime = GetNextTime();
+                    if (dateTime != null)
+                    {
+                        TimeSpan? timeSpan = TimeFromNow(dateTime);
+                        richTextBox1.Invoke(new Action(() => richTextBox1.Text += $"awaiting for {timeSpan.ToString()} \n"));
+
+                        try
+                        {
+                            await Task.Delay((TimeSpan)timeSpan, _cts.Token);
+                        }
+                        catch (Exception ex)
+                        {
+
+                        }
+
+                        if (_cts.IsCancellationRequested)
+                        {
+                            break;
+                        }
+
+
+
+                        richTextBox1.Invoke(new Action(() => richTextBox1.Text += $"{DateTime.Now}: video generated \n"));
+                        Thread.Sleep(5000);
+
+                        richTextBox1.Invoke(new Action(() => richTextBox1.Text += $"{DateTime.Now}: video Uploaded \n"));
+
+                    }
+                    else
+                    {
+                        DateTime dateTime1 = new DateTime(DateTime.Now.Year
+                            , DateTime.Now.Month
+                            , DateTime.Now.Day).AddDays(1);
+
+                        TimeSpan tillEndOfDate = dateTime1 - DateTime.Now;
+
+                        if (_cts.IsCancellationRequested)
+                        {
+                            break;
+                        }
+                        richTextBox1.Invoke(new Action(() => richTextBox1.Text += $"awaiting for {tillEndOfDate.ToString()} till day end \n"));
+
+
+                        await Task.Delay(tillEndOfDate, _cts.Token);
+
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                richTextBox1.Invoke(new Action(() => MessageBox.Show(ex.Message)));
+            }
+        }
+
 
 
         async Task MainLoop()
         {
-            while (true)
+            try
             {
-                //richTextBox1.Invoke(new Action(() => richTextBox1.Text += "test \n"));
-                //Thread.Sleep(2000);
-
-                DateTime? dateTime = GetNextTime();
-                if (dateTime != null)
+                while (true)
                 {
-                    TimeSpan? timeSpan = TimeFromNow(dateTime);
-                    await Task.Delay((TimeSpan)timeSpan, _cts.Token);
-                    if (_cts.IsCancellationRequested)
+                    //richTextBox1.Invoke(new Action(() => richTextBox1.Text += "test \n"));
+                    //Thread.Sleep(2000);
+
+                    DateTime? dateTime = GetNextTime();
+                    if (dateTime != null)
                     {
-                        break;
+                        TimeSpan? timeSpan = TimeFromNow(dateTime);
+                        await Task.Delay((TimeSpan)timeSpan, _cts.Token);
+                        if (_cts.IsCancellationRequested)
+                        {
+                            break;
+                        }
+
+                        Joke joke = null;
+                        List<string> lines = new List<string>();
+                        string title = "";
+
+                        //get a joke from db
+                        using (Context context = new Context())
+                        {
+                            joke = context.Jokes.Where(j => j.used == false).FirstOrDefault();
+                            lines = joke.body.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                            title = joke.title;
+
+                            joke.used = true;
+                            context.SaveChanges();
+                        }
+
+                        //lines.Insert(0, title);
+                        CreateAJokeVideo(lines);
+                        richTextBox1.Invoke(new Action(() => richTextBox1.Text += $"{DateTime.Now}: video generated \n"));
+
+                        //modify title if profanity contains
+
+                        if (linesContainProfaniy(lines))
+                        {
+                            title = $"(Adult Joke) {title}";
+
+                        }
+
+
+                        UploadVideo("output/output.mp4", title, checkBox5.Checked);
                     }
-                    string path = GenerateVideo(checkBox5.Checked);
-                    //test
-                  //  richTextBox1.Invoke(new Action(() => richTextBox1.Text += $"{DateTime.Now} video generated \n"));
-                    //test
-                   UploadVideo(path);
-                    //test
-                    richTextBox1.Invoke(new Action(() => richTextBox1.Text += $"{DateTime.Now} video uploaded \n"));
-                    //test
-                }
-                else
-                {
-                    DateTime dateTime1 = new DateTime(DateTime.Now.Year
-                        , DateTime.Now.Month
-                        , DateTime.Now.Day).AddDays(1);
-
-                    TimeSpan tillEndOfDate = dateTime1 - DateTime.Now;
-
-                    if (_cts.IsCancellationRequested)
+                    else
                     {
-                        break;
-                    }
-                    await Task.Delay(tillEndOfDate, _cts.Token);
+                        DateTime dateTime1 = new DateTime(DateTime.Now.Year
+                            , DateTime.Now.Month
+                            , DateTime.Now.Day).AddDays(1);
 
+                        TimeSpan tillEndOfDate = dateTime1 - DateTime.Now;
+
+                        if (_cts.IsCancellationRequested)
+                        {
+                            break;
+                        }
+                        await Task.Delay(tillEndOfDate, _cts.Token);
+
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                richTextBox1.Invoke(new Action(() => MessageBox.Show(ex.Message)));
             }
         }
 
-        private void UploadVideo(string path)
+        bool linesContainProfaniy(List<string> lines)
         {
-            //  throw new NotImplementedException();
+            List<string> profanityWords = new List<string>()
+            {
+                "fuck","ass","pussy","cunt","fucked","shit","bitch"
+            };
+
+            foreach (var line in lines)
+            {
+                foreach (var prof in profanityWords)
+                {
+                    if (line.Contains(prof, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+
+                }
+            }
+
+            return false;
         }
 
-        private string GenerateVideo(bool privateVideo)
+        //youtube developer api
+        private void UploadVideo(string path, string title, bool privateVideo)
         {
 
+            string result = Youtube.upload(title, path, GetTags(400), privateVideo, checkBox8.Checked,checkBox9.Checked);
 
-          //  CreateAJokeVideo()
-
-            return null;
-            //throw new NotImplementedException();
+            richTextBox1.Invoke(new Action(() => richTextBox1.Text += $"{DateTime.Now} : {result} \n"));
         }
+
+        private List<string> GetTags(int noOfChar)
+        {
+            List<string> allTags = new List<string>()
+            {
+                "try not to laugh",
+" funny jokes",
+" funny",
+" dad jokes",
+" joke",
+" jokes that will make you laugh so hard",
+" comedy",
+" best jokes",
+" jokes to tell your friends",
+" joke of the day",
+" humor",
+" joke compilation",
+" funny videos",
+" children jokes",
+" clean jokes",
+" short jokes",
+" funny joke",
+" classroom jokes",
+" two line jokes",
+" jokes about people",
+" stand up comedy",
+" jimmy carr",
+" most",
+" анекдоты",
+" super jokes",
+" top",
+" top jokes",
+" смешно",
+" best jokes ever",
+" jokes challenge",
+" jokes in english",
+" funny joke video",
+" funny video",
+" hilarious",
+" laugh",
+" short jokes to tell your friends",
+" funny jokes to tell your friends",
+" best jokes to tell",
+" funny jokes to tell",
+" funniest joke",
+" jokes that make you laugh so hard",
+" jokes on you",
+" little johnny jokes",
+" jokes video",
+" school jokes",
+" kid jokes",
+" teacher jokes",
+" jokes compilation 2019",
+" silly jokes",
+" chilli jokes",
+" dark jokes",
+" black jokes",
+" offensive jokes",
+" louis ck",
+" norm macdonald",
+" frankie boyle",
+" ricky gervais",
+" anthony jeselinkdavid cross",
+" 9 11 jokes",
+" hilarious comedy",
+" dark humor",
+" top 10 jokes",
+" laugh planet",
+" best dark jokes",
+" jokes 2019",
+" top 10 video",
+" funny animals jokes",
+" new jokes",
+" school kid jokes",
+" dirty jokes",
+" good jokes",
+" adult jokes",
+" marriage jokes",
+" daily jokes",
+" corny jokes",
+" stupid jokes",
+" bar jokes",
+" blonde jokes",
+" knock knock jokes",
+" knock knock jokes funny",
+" 30 knock knock jokes",
+" knock knock",
+" knock knock jokes!",
+" funny jokes for children",
+" joke telling contest"
+};
+            List<string> ret = new List<string>();
+
+            Random random = new Random();
+
+            while (true)
+            {
+                int existingLenght = 0;
+                foreach (var str in ret)
+                {
+                    existingLenght += str.Length;
+                }
+
+                string newPossibleTag = allTags[random.Next(0, allTags.Count() - 3)];
+
+                if ((existingLenght + newPossibleTag.Length) > noOfChar)
+                {
+                    return ret;
+                }
+                else
+                {
+                    ret.Add(newPossibleTag);
+                }
+
+            }
+
+
+        }
+
+
+
+
+        //private void GenerateVideo()
+        //{
+        //    Joke joke = null;
+        //    List<string> lines = new List<string>();
+        //    string title = "";
+
+        //    //get a joke from db
+        //    using (Context context = new Context())
+        //    {
+        //        joke = context.Jokes.Where(j => j.used == false).FirstOrDefault();
+        //        lines = joke.body.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+        //        title = joke.title;
+
+        //        joke.used = true;
+        //        context.SaveChanges();
+        //    }
+
+        //    lines.Insert(0, title);
+
+        //    CreateAJokeVideo(lines);
+
+        //}
+
+
+
 
         private TimeSpan? TimeFromNow(DateTime? dateTime)
         {
-            return dateTime - DateTime.Now;
+            return dateTime.Value.TimeOfDay - DateTime.Now.TimeOfDay;
 
-            
+
         }
 
         private DateTime? GetNextTime()
@@ -1135,6 +1563,406 @@ namespace Joke_Animation_Video_Generator
             }
         }
 
+        private void button3_Click(object sender, EventArgs e)
+        {
+            DialogResult dialogResult = MessageBox.Show("Are you sure?", "Alert", MessageBoxButtons.YesNo);
 
+            if (dialogResult == DialogResult.OK)
+            {
+
+                using (Context context = new Context())
+                {
+                    var list = context.Jokes.ToList();
+
+                    foreach (var joke in list)
+                    {
+                        if (joke.used == true)
+                        {
+                            joke.used = false;
+                        }
+                    }
+
+                }
+            }
+        }
+
+        private async void button4_Click(object sender, EventArgs e)
+        {
+            button1.Enabled = false;
+            button2.Enabled = false;
+            button3.Enabled = false;
+            button4.Enabled = false;
+
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    Joke joke = null;
+                    List<string> lines = new List<string>();
+                    string title = "";
+
+                    //get a joke from db
+                    using (Context context = new Context())
+                    {
+                        joke = context.Jokes.Where(j => j.used == false).FirstOrDefault();
+                        lines = joke.body.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                        title = joke.title;
+
+                        joke.used = true;
+                        context.SaveChanges();
+                    }
+
+                    //lines.Insert(0, title);  // මේ line එක ඕනේ title එකත් story එකේ part එකක් නම් විතරයි. එකට බලපාන්නේ jokes
+                    // database එකේ විදියයි
+                    CreateAJokeVideo(lines);
+                    richTextBox1.Invoke(new Action(() => richTextBox1.Text += $"{DateTime.Now}: video generated \n"));
+
+                    //modify title if profanity contains
+
+                    if (linesContainProfaniy(lines))
+                    {
+                        title = $"(Adult Joke) {title}";
+
+                    }
+
+
+
+                    UploadVideo("output/output.mp4", title, checkBox5.Checked);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            });
+
+
+            button1.Enabled = true;
+            button2.Enabled = false;
+            button3.Enabled = true;
+            button4.Enabled = true;
+
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            File.WriteAllText("refreshCredentials.txt", RandomString(20));
+            this.Close();
+        }
+
+        public static string RandomString(int length)
+        {
+            Random random = new Random();
+
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Repeat(chars, length)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        private void tabPage2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+
+        //add joke to database
+        private void button7_Click(object sender, EventArgs e)
+        {
+            if (richTextBox_new_joke.Text == "") return;
+
+
+            string inputJoke = richTextBox_new_joke.Text;
+
+
+            using (Context context = new Context())
+            {
+
+                string title = inputJoke.Split('\n').First();
+                int no_of_Char = inputJoke.Length;
+
+
+                string id = RandomString(10);
+                if (checkBox7.Checked)
+                {
+                    if (context.Jokes.Where(joke => joke.used == false).FirstOrDefault() != null)
+                    {
+                        var FirstNonUsed = context.Jokes.Where(joke => joke.used == false).FirstOrDefault();
+
+                        Joke joke = new Joke()
+                        {
+                            id = id
+                            ,
+                            body = FirstNonUsed.body
+                            ,
+                            no_of_charachter = FirstNonUsed.no_of_charachter
+                            ,
+                            score = FirstNonUsed.score
+                            ,
+                            title = FirstNonUsed.title
+                            ,
+                            used = FirstNonUsed.used
+                        };
+
+
+                        FirstNonUsed.no_of_charachter = no_of_Char;
+                        FirstNonUsed.body = inputJoke;
+                        FirstNonUsed.score = 0;
+                        FirstNonUsed.title = title;
+                        FirstNonUsed.used = false;
+                        context.SaveChanges();
+                        context.Jokes.Add(joke);
+                        context.SaveChanges();
+                    }
+                    else
+                    {
+                        context.Jokes.Add(new Joke() { id = id, body = inputJoke, no_of_charachter = no_of_Char, score = 0, title = title, used = false });
+
+                    }
+                }
+                else
+                {
+                    context.Jokes.Add(new Joke() { id = id, body = inputJoke, no_of_charachter = no_of_Char, score = 0, title = title, used = false });
+                }
+                context.SaveChanges();
+
+                dataGridView1.DataSource = context.Jokes.ToList();
+
+            }
+
+            MessageBox.Show("Added");
+
+            richTextBox_new_joke.Text = "";
+
+        }
+
+
+        //remove joke fromd database
+        private void button8_Click(object sender, EventArgs e)
+        {
+            int columnIndex = dataGridView1.CurrentCell.ColumnIndex;
+            int rowIndex = dataGridView1.CurrentCell.RowIndex;
+
+            using (Context context = new Context())
+            {
+                var removingJOke = context.Jokes.ToList()[rowIndex];
+                context.Jokes.Remove(removingJOke);
+                context.SaveChanges();
+
+                dataGridView1.DataSource = context.Jokes.ToList();
+
+            }
+            MessageBox.Show("Removed");
+        }
+
+        //add bulk (should be with a spefic formart)
+        private void button6_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void tabPage3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        //generate a test video
+        private async void button9_Click(object sender, EventArgs e)
+        {
+            tabControl1.Enabled = false;
+            label3.Visible = true;
+            richTextBox2.Enabled = false;
+
+            string joketext = richTextBox2.Text;
+
+            var lines = joketext.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+            await Task.Run(() => CreateAJokeVideo(lines));
+
+            //open a video with default defaault video player
+            try
+            {
+                //System.Diagnostics.Process.Start(@"output\output.mp4");
+                OpenWithDefaultProgram(@"output\output.mp4");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("please run output\\output.mp4");
+            }
+
+
+            tabControl1.Enabled = true;
+            label3.Visible = false;
+            richTextBox2.Enabled = true;
+
+            MessageBox.Show("Done");
+        }
+
+        public static void OpenWithDefaultProgram(string path)
+        {
+            using Process fileopener = new Process();
+
+            fileopener.StartInfo.FileName = "explorer";
+            fileopener.StartInfo.Arguments = "\"" + path + "\"";
+            fileopener.Start();
+        }
+
+        //change backgroud image 
+        private void button10_Click(object sender, EventArgs e)
+        {
+            int ioutput = 0;
+            double doutput = 0;
+            if (_bitmapNewBackgroundImage == null)
+            {
+                MessageBox.Show("Background Image is not Selected!");
+                return;
+            }
+            else if (!int.TryParse(textBox1.Text, out ioutput))
+            {
+                MessageBox.Show("X position value not correct!");
+                return;
+            }
+            else if (!int.TryParse(textBox2.Text, out ioutput))
+            {
+                MessageBox.Show("Y position value not correct!");
+                return;
+            }
+            else if (!double.TryParse(textBox3.Text, out doutput))
+            {
+                MessageBox.Show("Scale value not correct!");
+                return;
+            }
+
+            //delete existing animation images
+            var filesInDir = Directory.GetFiles("textfiles\\animation_images").ToList();
+            foreach (var file in filesInDir)
+            {
+                try
+                {
+                    File.Delete(file);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error Deleting Exising Images...");
+                    return;
+                }
+            }
+
+
+
+            List<string> charachterImagesPaths = Directory.GetFiles("textfiles\\charachter_images").ToList();
+            foreach (string imgPath in charachterImagesPaths)
+            {
+                try
+                {
+                    var cloned = _bitmapNewBackgroundImage.Clone() as Bitmap;
+                    string savePath = $"textfiles\\animation_images\\{imgPath.Split('\\').Last()}";
+                    addOverlay(cloned, imgPath, savePath, int.Parse(textBox1.Text), int.Parse(textBox2.Text), double.Parse(textBox3.Text));
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error Generating new Images...");
+                    return;
+                }
+            }
+
+            Image image = GetCopyImage("textfiles\\animation_images\\1.png");
+            pictureBox1.Image = image;
+            label8.Text = "";
+
+        }
+
+        //choose new background image
+        private void button11_Click(object sender, EventArgs e)
+        {
+
+
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "PNG Portable Network Graphics (*.png)|" + "*.png";
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                _bitmapNewBackgroundImage = Bitmap.FromFile(openFileDialog.FileName) as Bitmap;
+
+                if (_bitmapNewBackgroundImage.Width != 1920 || _bitmapNewBackgroundImage.Height != 1080)
+                {
+                    MessageBox.Show("Error", "Image is not of 1920*1080 resolution.");
+                    _bitmapNewBackgroundImage = null;
+                    return;
+                }
+
+                label8.Text = openFileDialog.FileName;
+
+                Image image = GetCopyImage(openFileDialog.FileName);
+                pictureBox1.Image = image;
+            }
+        }
+
+        private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            Image image = GetCopyImage("textfiles\\animation_images\\1.png");
+            pictureBox1.Image = image;
+            label8.Text = "";
+        }
+
+        private void tabPage5_Click(object sender, EventArgs e)
+        {
+            string folderPath = "outro";
+
+            //if the folder has a single video with 1920*1080 resolution
+            if (Directory.GetFiles(folderPath).ToList().Count() == 1)
+            {
+                //have to get the file and make sure its a video and its resolution is 1920*1080
+                string videoFilePath = Directory.GetFiles(folderPath).First();
+                var ffProbe = new NReco.VideoInfo.FFProbe();
+                var videoInfo = ffProbe.GetMediaInfo(videoFilePath);
+                
+                
+            }
+
+
+
+            //else if folder has no video 
+
+            //else if folder has a video with different resolution
+
+            //folder does not exist
+        }
+
+        private void button13_Click(object sender, EventArgs e)
+        {
+            //ExecuteFFMpeg($"-f concat -i temp1/info.txt -vsync vfr -pix_fmt yuv420p temp1/outro.mp4", true);
+
+          //  ExecuteFFMpeg(@"-f concat -i temp/videofiles.txt -c copy temp/contcated.mp4", true);
+
+            int oidsjfosdif = 0;
+
+
+            //StringBuilder stringBuilder = new StringBuilder();
+            //Random random = new Random();
+
+            //string outputTextfileName = "temp1/info.txt";
+
+            //for (int x = 1; x <= 101; x++)
+            //{
+            //    string number = "";
+
+            //    if(x.ToString().Length == 1)
+            //    {
+            //        number = "00" + x.ToString();
+            //    }
+            //    else if(x.ToString().Length == 2)
+            //    {
+            //        number = "0" + x.ToString();
+            //    }
+            //    else
+            //    {
+            //        number = x.ToString();
+            //    }
+
+
+            //    stringBuilder.AppendLine($"file 'ezgif-frame-{number}.png'");
+            //    stringBuilder.AppendLine($"duration 0.1");
+            //}
+            //File.WriteAllText(outputTextfileName, stringBuilder.ToString());
+        }
     }
 }

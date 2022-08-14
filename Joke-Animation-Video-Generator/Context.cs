@@ -19,6 +19,10 @@ namespace Joke_Animation_Video_Generator
             modelBuilder.Entity<Joke>().ToTable("Joke");
         }
     }
+
+
+
+
 }
 
 

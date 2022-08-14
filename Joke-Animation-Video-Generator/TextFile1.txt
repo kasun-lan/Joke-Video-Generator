@@ -1,0 +1,38 @@
+﻿animation project
+
+-output.mp4-
+Codec: H264 - MPEG-4 AVC (part 10) (avc1)
+Type: Video
+Video resolution: 1920x1080
+Buffer dimensions: 1920x1088
+Frame rate: 25
+Decoded format: 
+Orientation: Top left
+Chroma location: Left
+
+
+-outro1.mp4-
+Codec: H264 - MPEG-4 AVC (part 10) (avc1)
+Type: Video
+Video resolution: 3840x2160
+Buffer dimensions: 3840x2160
+Frame rate: 23.976023
+Decoded format: 
+Orientation: Top left
+Color primaries: ITU-R BT.709
+Color transfer function: ITU-R BT.709
+Color space: ITU-R BT.709 Range
+Chroma location: Left
+
+-outro2.mp4-
+
+Codec: H264 - MPEG-4 AVC (part 10) (avc1)
+Type: Video
+Video resolution: 1920x1080
+Buffer dimensions: 1920x1088
+Frame rate: 23.976023
+Decoded format: 
+Orientation: Top left
+Color primaries: ITU-R BT.709
+Color transfer function: ITU-R BT.709
+Chroma location: Left
