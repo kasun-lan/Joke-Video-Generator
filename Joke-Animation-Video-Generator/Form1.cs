@@ -110,17 +110,17 @@ namespace Joke_Animation_Video_Generator
         {
             //temp
 
-           /// ExecuteFFMpeg(@"-f concat -i temp/videofiles.txt -c copy temp/contcated.mp4", false);
+            /// ExecuteFFMpeg(@"-f concat -i temp/videofiles.txt -c copy temp/contcated.mp4", false);
 
             //ExecuteFFMpeg("-i temp/output.mp4 -c copy -bsf h264_mp4toannexb  temp/vid1.ts", true);
             //ExecuteFFMpeg("-i temp/outro2.mp4 -c copy -bsf h264_mp4toannexb  temp/vid2.ts", true);
             //ExecuteFFMpeg("-i \"concat: vid1.ts | vid2.ts\" -c copy temp/concated.mp4", true);
 
-           //  ExecuteFFMpeg("-i temp/output.mp4 -i temp/outro2.mp4 - filter_complex \"[0:v] [0:a] [1:v] [1:a] [2:v] [2:a] concat = n = 3:v = 1:a = 1[v][a]\" - map \"[v]\" - map \"[a]\" temp/output.mp4", true);
+            //  ExecuteFFMpeg("-i temp/output.mp4 -i temp/outro2.mp4 - filter_complex \"[0:v] [0:a] [1:v] [1:a] [2:v] [2:a] concat = n = 3:v = 1:a = 1[v][a]\" - map \"[v]\" - map \"[a]\" temp/output.mp4", true);
 
-         ///   NReco.VideoInfo.FFProbe instance = new NReco.VideoInfo.FFProbe();
+            ///   NReco.VideoInfo.FFProbe instance = new NReco.VideoInfo.FFProbe();
 
-            int sdfjsldkfjsldf = 0;
+            //   int sdfjsldkfjsldf = 0;
 
 
             //
@@ -152,6 +152,18 @@ namespace Joke_Animation_Video_Generator
 
 
             dataGridView1.Columns[5].ReadOnly = true;
+
+
+            var outroFile = Directory.GetFiles("outro").ToList().FirstOrDefault();
+
+            if (!string.IsNullOrEmpty(outroFile))
+            {
+                label12.Text = outroFile.Split("\\").Last();
+            }
+            else
+            {
+                label12.Text = "------";
+            }
         }
 
         private Image GetCopyImage(string path)
@@ -1380,7 +1392,7 @@ namespace Joke_Animation_Video_Generator
         private void UploadVideo(string path, string title, bool privateVideo)
         {
 
-            string result = Youtube.upload(title, path, GetTags(400), privateVideo, checkBox8.Checked,checkBox9.Checked);
+            string result = Youtube.upload(title, path, GetTags(400), privateVideo, checkBox8.Checked, checkBox9.Checked);
 
             richTextBox1.Invoke(new Action(() => richTextBox1.Text += $"{DateTime.Now} : {result} \n"));
         }
@@ -1908,15 +1920,15 @@ namespace Joke_Animation_Video_Generator
             string folderPath = "outro";
 
             //if the folder has a single video with 1920*1080 resolution
-            if (Directory.GetFiles(folderPath).ToList().Count() == 1)
-            {
-                //have to get the file and make sure its a video and its resolution is 1920*1080
-                string videoFilePath = Directory.GetFiles(folderPath).First();
-                var ffProbe = new NReco.VideoInfo.FFProbe();
-                var videoInfo = ffProbe.GetMediaInfo(videoFilePath);
-                
-                
-            }
+            //if (Directory.GetFiles(folderPath).ToList().Count() == 1)
+            //{
+            //    //have to get the file and make sure its a video and its resolution is 1920*1080
+            //    string videoFilePath = Directory.GetFiles(folderPath).First();
+            //    var ffProbe = new NReco.VideoInfo.FFProbe();
+            //    var videoInfo = ffProbe.GetMediaInfo(videoFilePath);
+
+
+            //}
 
 
 
@@ -1929,7 +1941,7 @@ namespace Joke_Animation_Video_Generator
 
 
 
-        string generateConcatString(string video1Path, string video2Path,string outputPath)
+        string generateConcatString(string video1Path, string video2Path, string outputPath)
         {
             return $@"-i {video1Path} -i {video2Path} -strict -2 -filter_complex " +
           "\"[0:v]scale=1920:1080,fps=20,format=yuv420p[v0];" +
@@ -1952,9 +1964,9 @@ namespace Joke_Animation_Video_Generator
 
             //ExecuteFFMpeg($"-f concat -i temp1/info.txt -vsync vfr -pix_fmt yuv420p temp1/outro.mp4", true);
 
-          //  ExecuteFFMpeg(@"-f concat -i temp/videofiles.txt -c copy temp/contcated.mp4", true);
+            //  ExecuteFFMpeg(@"-f concat -i temp/videofiles.txt -c copy temp/contcated.mp4", true);
 
-          //  int oidsjfosdif = 0;
+            //  int oidsjfosdif = 0;
 
 
             //StringBuilder stringBuilder = new StringBuilder();
@@ -2010,10 +2022,41 @@ namespace Joke_Animation_Video_Generator
 
         private void button6_Click_1(object sender, EventArgs e)
         {
+
+
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "MP4 Files|*.mp4";
 
-            if(openFileDialog.ShowDialog() == DialogResult.OK)
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                //remove the existing file in outro folder.
+                ClearFilesInFolder("outro");
+                //copy the selected file to outro folder
+                string lst = openFileDialog.FileName.Split("\\").Last();
+                string destFile = $"outro/{lst}";
+                File.Copy(openFileDialog.FileName, destFile);
+                //change the label
+                label12.Text = lst;
+            }
+        }
+
+        private void button14_Click(object sender, EventArgs e)
+        {
+            if(MessageBox.Show("Are you sure","Alert",MessageBoxButtons.YesNo) == DialogResult.Yes)
+            {
+                //remove the existing file in outro folder.
+                ClearFilesInFolder("outro");
+                label12.Text = "------";
+            }
+        }
+
+        private void button12_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Process.Start(Directory.GetFiles("outro").First());
+            }
+            catch(Exception ex)
             {
 
             }

@@ -78,10 +78,10 @@ namespace Joke_Animation_Video_Generator
             this.button9 = new System.Windows.Forms.Button();
             this.richTextBox2 = new System.Windows.Forms.RichTextBox();
             this.tabPage5 = new System.Windows.Forms.TabPage();
-            this.button12 = new System.Windows.Forms.Button();
             this.button6 = new System.Windows.Forms.Button();
             this.label12 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
+            this.button14 = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -646,7 +646,7 @@ namespace Joke_Animation_Video_Generator
             // 
             // tabPage5
             // 
-            this.tabPage5.Controls.Add(this.button12);
+            this.tabPage5.Controls.Add(this.button14);
             this.tabPage5.Controls.Add(this.button6);
             this.tabPage5.Controls.Add(this.label12);
             this.tabPage5.Controls.Add(this.label11);
@@ -658,18 +658,9 @@ namespace Joke_Animation_Video_Generator
             this.tabPage5.UseVisualStyleBackColor = true;
             this.tabPage5.Click += new System.EventHandler(this.tabPage5_Click);
             // 
-            // button12
-            // 
-            this.button12.Location = new System.Drawing.Point(22, 87);
-            this.button12.Name = "button12";
-            this.button12.Size = new System.Drawing.Size(112, 34);
-            this.button12.TabIndex = 3;
-            this.button12.Text = "Play";
-            this.button12.UseVisualStyleBackColor = true;
-            // 
             // button6
             // 
-            this.button6.Location = new System.Drawing.Point(147, 87);
+            this.button6.Location = new System.Drawing.Point(24, 84);
             this.button6.Name = "button6";
             this.button6.Size = new System.Drawing.Size(112, 34);
             this.button6.TabIndex = 2;
@@ -694,6 +685,16 @@ namespace Joke_Animation_Video_Generator
             this.label11.Size = new System.Drawing.Size(119, 25);
             this.label11.TabIndex = 0;
             this.label11.Text = "Outro Video :";
+            // 
+            // button14
+            // 
+            this.button14.Location = new System.Drawing.Point(156, 84);
+            this.button14.Name = "button14";
+            this.button14.Size = new System.Drawing.Size(112, 34);
+            this.button14.TabIndex = 4;
+            this.button14.Text = "Remove";
+            this.button14.UseVisualStyleBackColor = true;
+            this.button14.Click += new System.EventHandler(this.button14_Click);
             // 
             // Form1
             // 
@@ -780,11 +781,11 @@ namespace Joke_Animation_Video_Generator
         private System.Windows.Forms.CheckBox checkBox8;
         private System.Windows.Forms.TabPage tabPage5;
         private System.Windows.Forms.Label label11;
-        private System.Windows.Forms.Button button12;
         private System.Windows.Forms.Button button6;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Button button13;
         private System.Windows.Forms.CheckBox checkBox9;
+        private System.Windows.Forms.Button button14;
     }
 }
 
