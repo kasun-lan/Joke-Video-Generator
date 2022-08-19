@@ -52,7 +52,7 @@ namespace Joke_Animation_Video_Generator
             {
 
                 File.Copy("output/output.mp4","outro/output.mp4");
-                Form1.ExecuteFFMpeg(@"-f concat -i outro/parts.txt -c copy outrooutput/output.mp4", true);
+                Form1.ExecuteFFMpeg(@"-f concat -i outro/parts.txt -c copy outrooutput/output.mp4", false);
 
 
             }
@@ -79,7 +79,7 @@ namespace Joke_Animation_Video_Generator
 
                 video.Snippet.Title += " #Shorts";
 
-                Form1.ExecuteFFMpeg($"-loop 1 -i sw_back/image.png -i {input} -filter_complex \"[1:v]scale = 1080:-1[fg];[0:v][fg]overlay = (W - w) / 2:(H - h) / 2:shortest = 1\" sw_output/output.mp4", true);
+                Form1.ExecuteFFMpeg($"-loop 1 -i sw_back/image.png -i {input} -filter_complex \"[1:v]scale = 1080:-1[fg];[0:v][fg]overlay = (W - w) / 2:(H - h) / 2:shortest = 1\" sw_output/output.mp4", false);
 
                 _filePath = "sw_output/output.mp4";
             }

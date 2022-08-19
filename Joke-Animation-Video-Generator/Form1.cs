@@ -1174,7 +1174,7 @@ namespace Joke_Animation_Video_Generator
             try
             {
 
-                await Task.Run(TestMainLoop);
+                await Task.Run(MainLoop);
             }
             catch (Exception ex)
             {
@@ -1927,13 +1927,34 @@ namespace Joke_Animation_Video_Generator
             //folder does not exist
         }
 
+
+
+        string generateConcatString(string video1Path, string video2Path,string outputPath)
+        {
+            return $@"-i {video1Path} -i {video2Path} -strict -2 -filter_complex " +
+          "\"[0:v]scale=1920:1080,fps=20,format=yuv420p[v0];" +
+          "[1:v]scale=1920:1080,fps=20,format=yuv420p[v1];" +
+          "[0:a]aformat=sample_rates=48000:channel_layouts=stereo[a0];" +
+          "[1:a]aformat=sample_rates=48000:channel_layouts=stereo[a1];" +
+          "[v0][a0][v1][a1]concat=n=2:v=1:a=1[v][a]\"" +
+          $" -map \"[v]\" -map \"[a]\" -c:v libx264 -c:a aac {outputPath}";
+        }
+
         private void button13_Click(object sender, EventArgs e)
         {
+
+            string test = generateConcatString("temp2/first.mp4", "temp2/last.mp4", "temp2/output2.mp4");
+
+            ExecuteFFMpeg(test, true);
+
+            int sdsofisodif = 0;
+
+
             //ExecuteFFMpeg($"-f concat -i temp1/info.txt -vsync vfr -pix_fmt yuv420p temp1/outro.mp4", true);
 
           //  ExecuteFFMpeg(@"-f concat -i temp/videofiles.txt -c copy temp/contcated.mp4", true);
 
-            int oidsjfosdif = 0;
+          //  int oidsjfosdif = 0;
 
 
             //StringBuilder stringBuilder = new StringBuilder();
@@ -1984,6 +2005,17 @@ namespace Joke_Animation_Video_Generator
                 {
                     checkBox8.Checked = false;
                 }
+            }
+        }
+
+        private void button6_Click_1(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "MP4 Files|*.mp4";
+
+            if(openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+
             }
         }
     }
